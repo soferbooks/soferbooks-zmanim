@@ -1,0 +1,40 @@
+{
+  "name": "soferbooks-zmanim",
+  "version": "0.1.0",
+  "description": "Halachic times (zmanim) from full-precision astronomy: Rav Yaakov Hillel's degrees, Chacham Ovadia Yosef's seasonal times, fixed minutes, weather-based refraction, visible sunrise over the terrain, moonrise/moonset and the astronomical new moon.",
+  "type": "module",
+  "main": "src/index.js",
+  "exports": {
+    ".": "./src/index.js",
+    "./terrain": "./src/terrain/index.js"
+  },
+  "files": [
+    "src",
+    "LICENSE",
+    "README.md"
+  ],
+  "scripts": {
+    "test": "node test/run-tests.js"
+  },
+  "keywords": [
+    "zmanim",
+    "jewish",
+    "halacha",
+    "sunrise",
+    "sunset",
+    "molad",
+    "astronomy"
+  ],
+  "license": "GPL-3.0-or-later",
+  "dependencies": {
+    "astronomia": "^4.2.0",
+    "astronomy-engine": "^2.1.19",
+    "geotiff": "^3.0.5"
+  },
+  "devDependencies": {
+    "kosher-zmanim": "^0.9.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

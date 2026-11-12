@@ -1,0 +1,5 @@
+# ERA5 downloads and what is extracted from them: re-created by the fetch / extract scripts.
+data/
+clim/
+*.json
+*.log

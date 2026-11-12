@@ -1,0 +1,3 @@
+node_modules/
+# Rabbi Keller's observations are downloaded by the tests, not redistributed.
+test/fixtures/observations.json
