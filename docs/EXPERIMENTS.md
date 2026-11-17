@@ -284,7 +284,9 @@ event.
 Technical Note 2014-05, DTIC AD1094328). The note does not list the times. It gives only their statistics against a
 standard computation: Hohenkerk and Sinclair's ray trace through the US Standard Atmosphere (6.5 K/km), with the upper
 limb on the sea horizon. For all 250 sunsets, observed minus computed is +68 s on average. For the 178 where no mirage
-was noted it is +41 s (median 35, scatter 58). The follow-up note (DTIC AD1097511) could not be reached.
+was noted it is +41 s (median 35, scatter 58). The follow-up, Technical Note 2016-04 (Hilton 2016, DTIC AD1097511),
+redid the computation with the final refraction code and found the same (+42 ± 59 s on ordinary nights, +70 ± 80 s
+for all). Neither note lists the times.
 
 So the test is indirect. Over the same season, weighted as his sunsets were, we found how much the engine's visible
 sunset differs from that standard computation. The standard was redone with the engine's own ray tracer, set to the
@@ -310,10 +312,24 @@ both readings are shown:
   Santa Monica Mountains (55–90 km) and Santa Cruz Island (about 165 km) rising above the sea horizon. They are up to
   0.34° above it, in the directions where the Sun sets from about 25 September to 5 November and 3 February to
   24 March. On 76 of the season's 188 days the engine's visible sunset over the real horizon is earlier than over the
-  sea, by up to 118 s (13 s on the season's average, weighted as his sunsets were). Hilton assumed the sea horizon
-  whenever the azimuth was under 276°, and so did the standard computation. If the observer timed the Sun behind those
-  hills, observed − engine over the real horizon is about 13 s *larger* than in the table: about +67 s on ordinary
-  nights. Without the dates this cannot be settled sunset by sunset.
+  sea, by up to 118 s (13 s on the season's average, weighted as his sunsets were). But Hilton's 2016 note says no
+  sunset was observed between azimuth 255° and 264°, and that is where every day blocked by more than about a minute
+  falls. Leaving those days out, the real horizon moves the engine's sunset only 3 s earlier on average (35 of 147 days
+  touched, mostly by the Santa Monica Mountains at 55–90 km). So over the real horizon, observed − engine is about
+  +57 s on ordinary nights (refracted dip). Hilton's note says nothing stood in the foreground, but it checked only the
+  islands. A second elevation source (SRTM 30 m, sampled every 750 m) gives the same mountains within 0.05°: the
+  highest, about −0.95° against the sea horizon's −1.25°, is Boney Mountain / Sandstone Peak (840 m in SRTM, 82 km
+  away, azimuth 262°). The gap in his azimuths, 255°–264°, is where the mountains stand highest, so the observer
+  most likely did not log sunsets that set on land. Without the dates the remaining few seconds cannot be settled sunset by sunset.
+- **Where the late sunset comes from.** The same observer also timed the Sun's lower limb (109 times) and centre
+  (217 times) touching the horizon. Against the same standard computation these come out at +3 ± 45 s and −4 ± 35 s:
+  the standard is right for the body of the Sun. Only the last of the upper limb is late, by 40–70 s, with twice the
+  scatter. Hilton's explanation: from 1,739 m the horizon is about 150 km away, and the air within a few hundred metres
+  of the sea there (about 5′ high as seen from the mountain) is colder than the standard atmosphere, with an
+  inversion in the lowest 10–20 m. The lower limb and centre touch the horizon above that layer; the last sliver is
+  seen through it. Rarogiewicz's 15 remarks (sunset "into a smog layer", flickering specks after sunset) fit the same
+  layer. For the engine: its offset from the standard is +13 s, so on the lower limb and centre it would be about
+  10–15 s off. The 50 s or more is the sea's surface layer acting on the last sliver of the limb.
 
 **ERA5's typical layering on these timings** (`era5-layering.mjs`). This repeats the worldwide test done on Keller's
 sunrises. The air is ERA5's 2011–2020 monthly mean at that hour, ray traced along each line of sight, over the horizon

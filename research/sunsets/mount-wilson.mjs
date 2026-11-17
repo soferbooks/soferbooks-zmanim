@@ -68,6 +68,9 @@ const span = (k) => { const v = rows.map(k); return `${Math.min(...v).toFixed(0)
 console.log(`  range over the season: ${span((r) => (r.stdK - r.engine) / 1000)} / ${span((r) => (r.stdGeo - r.engine) / 1000)}`);
 const blocked = rows.filter((r) => r.realEngine < r.engine - 500);
 console.log(`real horizon: the Sun sets behind land on ${blocked.length} of ${rows.length} season days; weighted mean shift ${wmean((r) => (r.engine - r.realEngine) / 1000).toFixed(1)} s earlier`);
+// Hilton TN 2016-04 (DTIC AD1097511), section 5: no observed sunset lies between azimuth 255 and 264 deg.
+const seen = rows.filter((r) => !(r.az >= 255 && r.az <= 264)), wm = (rs, k) => rs.reduce((a, r) => a + r.w * k(r), 0) / rs.reduce((a, r) => a + r.w, 0);
+console.log(`  leaving out azimuth 255-264 (no sunsets observed there): ${seen.filter((r) => r.realEngine < r.engine - 500).length} of ${seen.length} days behind land; weighted mean shift ${wm(seen, (r) => (r.engine - r.realEngine) / 1000).toFixed(1)} s earlier`);
 for (const r of blocked) console.log(`  ${r.date.y}-${r.date.m}-${r.date.d}  ${((r.engine - r.realEngine) / 1000).toFixed(0)} s earlier, terrain ${r.angle?.toFixed?.(3)} deg at ${(r.dist / 1000).toFixed(0)} km, az ${r.az?.toFixed?.(1)}`);
 for (const [label, oc] of [['all 250', 68], ['no mirage noted (178), mean', 41], ['no mirage noted, median', 35]])
   console.log(`observed - engine, ${label}: ${(oc + dK).toFixed(0)} s (refracted dip) / ${(oc + dG).toFixed(0)} s (geometric dip)`);
