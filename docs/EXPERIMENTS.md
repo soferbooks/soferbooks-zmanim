@@ -360,6 +360,65 @@ horizon instead of going through the skyline.)
 Sampson's thesis may not be reproduced, so its timings are not in this repository: the script reads a local
 transcription.
 
+### Two follow-ups tested on all these timings (2026-11-19)
+
+**1. A correction for cold dawns** (`era5-layering.mjs`). Edmonton's sunrises come 71 s before the engine's visible
+sunrise on average. ERA5's typical dawn layering, used as it is (not scaled to keep the normals' mean), brings that to
+−40 s. The idea was to use it only where it is cold, so that Israel and Chile would be untouched. The data does not
+support that:
+
+| Edmonton, by the normal daily temperature: n / mean / rms (s) | Sunrises, normals | Sunrises, ERA5 | Sunsets, normals | Sunsets, ERA5 |
+|---|---|---|---|---|
+| below −10 °C | 64 / −103 / 148 | −74 / 129 | 26 / +76 / 99 | +37 / 66 |
+| −10 to −5 °C | 43 / −81 / 145 | −54 / 134 | 14 / +32 / 50 | −10 / 55 |
+| −5 to 0 °C | 29 / −65 / 87 | −31 / 68 | 11 / −3 / 8 | −10 / 16 |
+| 0 to 5 °C | 27 / −35 / 41 | −5 / 28 | 16 / +1 / 30 | +1 / 30 |
+| above 5 °C | 81 / −55 / 79 | −21 / 62 | 58 / −3 / 13 | −4 / 17 |
+
+- **The early sunrises are not a cold effect.** They are 55 s early even in months above 5 °C, and ERA5 helps by
+  about 30 s at every temperature. It is the prairie's dawn inversion, which forms on clear nights all year. A
+  temperature rule would keep only part of the gain (below 0 °C: rms 112 → 102 s; everywhere: 97 s).
+- **Sunsets are the other way.** ERA5 helps only in deep cold (below −10 °C) and is slightly worse in mild weather.
+- **Elsewhere it is mixed.** ERA5 used as it is helps Rav Druk (16.9 → 15.9 s rms) and Cerro Tololo (90 → 80 s), and
+  hurts Rav Zuriel (11.2 → 12.5 s) and Viña del Mar (37 → 44 s). Neither the temperature nor the height nor sea
+  against land separates the two groups cleanly: Rav Zuriel also looks east over land.
+
+**Not adopted.** It is not more accurate everywhere, and no simple rule picks out where it is. The version that keeps
+each place's mean (tested on Keller's sunrises, above) is harmless but cannot remove a bias like Edmonton's.
+Edmonton's early sunrises are also on the near side of the printed time (below), so they do not make a printed sunrise
+come too early.
+
+**2. A cushion sized to the place** (`cushion.mjs`). The engine prints the visible sunrise 15 s after the computed
+one and the visible sunset 15 s before it. The question is how often the Sun was actually seen on the near side of
+the printed time: a sunrise no later than printed, a sunset no earlier.
+
+| Event and place | n | Mean / scatter (s) | Covered: no cushion / 15 s / 30 s / 60 s | Cushion for 90% / 95% / 99% |
+|---|---|---|---|---|
+| Sunrise, Israel hills (Rav Druk, R' Golan) | 2,121 | +4 / 16 | 33% / 79% / 96% / 100% | 21 / 26 / 41 s |
+| Sunrise, Israel coastal plain (Rav Zuriel) | 88 | −4 / 10 | 66% / 98% / 100% / 100% | 8 / 11 / 29 s |
+| Sunrise, Edmonton prairie | 244 | −71 / 87 | 95% / 100% / 100% / 100% | 0 / 0 / 6 s |
+| Sunset, Edmonton prairie | 125 | +18 / 47 | 52% / 91% / 99% / 100% | 14 / 21 / 28 s |
+| Sunset over the sea, up to 300 m (Hawaii's coast, Viña del Mar, La Serena) | 86 | −39 / 28 | 2% / 3% / 21% / 94% | 54 / 68 / 125 s |
+| Sunset over the sea, 800–4,205 m (Hawaii, Cerro Tololo) | 24 | +35 / 78 | 71% / 75% / 83% / 100% | 48 / 53 / 56 s |
+| Sunset over the sea, 1,739 m, binoculars (Mount Wilson) | 250 | +73 / 78 | 90% / 93% / 94% / 97% | 2 / 33 / 110 s |
+| The same, no mirage noted | 178 | +47 / 56 | 86% / 90% / 93% / 96% | 14 / 49 / 123 s |
+
+- **On land, 15 s covers most days.** It covers 79% of the Israeli hill sunrises and 91% of Edmonton's sunsets.
+  About 25 s would cover 95% in both.
+- **Sunsets over the sea from low down are the problem.** The unaided eye lost the Sun about 40 s before the engine's
+  sunset, and 15 s covers only 3% of them. About a minute would cover 90%. 77 of the 86 are one observer team at Viña
+  del Mar, so this needs more data before it is relied on. It is also the case closest to an ordinary person watching
+  sunset at the beach.
+- **From high up the scatter is large both ways.** At Mount Wilson the binocular observer usually saw the Sun after
+  the engine's sunset, which is on the safe side. But on a few nights it went out early (into haze), and covering 99%
+  would take two minutes.
+- **The engine already knows which case it is in.** `visibleRiseSet` reports the angle and distance of what the Sun
+  rises or sets behind, whether it is near ground (`near`) or the open sea-level horizon (`open`), and the observer's
+  height. So a cushion by horizon type could be built with no new data.
+
+**Not changed.** How sure the printed time must be (90%, 95%, 99%), and on which side, is a halachic decision, not a
+numerical one. These tables give what each choice would cost.
+
 ## Data used
 
 ERA5 (Copernicus Climate Change Service, CC BY 4.0) through the Copernicus Climate Data Store and Open-Meteo; NOAA IGRA v2

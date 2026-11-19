@@ -67,6 +67,9 @@ for (const [id, site] of Object.entries(fx.sites)) {
   }
 }
 if (fresh) writeFileSync(cacheUrl, JSON.stringify(cache));
+// --dump=path: each observer's observed − computed (s), for research/sunsets/cushion.mjs.
+const dump = arg('dump', '');
+if (dump) writeFileSync(dump, JSON.stringify(Object.fromEntries(Object.entries(stats).map(([id, s]) => [id, s.list]))));
 let allN = 0, allSum = 0, allSq = 0;
 for (const [id, s] of Object.entries(stats)) {
   const mean = s.sum / s.n, rms = Math.sqrt(s.sq / s.n), sd = Math.sqrt(s.sq / s.n - mean * mean);

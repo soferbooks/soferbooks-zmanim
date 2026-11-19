@@ -7,7 +7,7 @@
 //   era5kept  the same, times one constant per place and event (model against model, no observations) so the average
 //             computed time equals the normals': ERA5 adds only the shape through the year and the day.
 // Run after fetch_clim.py and extract_clim.py (and with cache/sampson-1994.tsv, see sampson-edmonton.mjs).
-import { readFileSync } from 'node:fs';
+import { readFileSync, writeFileSync } from 'node:fs';
 import * as AE from 'astronomy-engine';
 const Z = new URL('../../', import.meta.url).href;
 const { visibleRiseSet, refractionAt } = await import(Z + 'src/terrain/visible.js');
@@ -77,8 +77,23 @@ const report = (title, groups, res) => {
   const S = {};
   for (const g of new Set(ev.map((e) => e.group))) { S[g] = keepMean(ev.filter((e) => e.group === g), timeOf); }
   console.log('Edmonton scale per site/event:', Object.entries(S).map(([g, s]) => `${g} ${s.toFixed(3)}`).join(', '));
-  const res = ev.map((e) => ({ rise: e.rise, normals: (e.obs - timeOf(e, null)) / 1000, era5: (e.obs - timeOf(e, 1)) / 1000, era5kept: (e.obs - timeOf(e, S[e.group])) / 1000 }));
+  const res = ev.map((e) => ({ rise: e.rise, tempC: e.air.tempC, normals: (e.obs - timeOf(e, null)) / 1000, era5: (e.obs - timeOf(e, 1)) / 1000, era5kept: (e.obs - timeOf(e, S[e.group])) / 1000 }));
   report('Edmonton (Sampson 1994), over the horizon he measured', [['Sunrises', (r) => r.rise], ['Sunsets', (r) => !r.rise], ['All', () => true]], res);
+  // Cold-dawn test: by the day's normal mean temperature at the eye, and the rule "ERA5's layering only below T".
+  const ok = res.filter((r) => Number.isFinite(r.normals) && Number.isFinite(r.era5));
+  const st = (v) => `${String(v.length).padStart(4)} ${mean(v).toFixed(1).padStart(7)} ${rms(v).toFixed(1).padStart(6)}`;
+  for (const [lab, isRise] of [['sunrises', true], ['sunsets', false]]) {
+    console.log(`\n Edmonton ${lab} by the normal temperature: n / mean / rms, normals | era5`);
+    for (const [lo, hi] of [[-40, -10], [-10, -5], [-5, 0], [0, 5], [5, 40]]) {
+      const s = ok.filter((r) => r.rise === isRise && r.tempC >= lo && r.tempC < hi);
+      if (s.length) console.log(`   ${String(lo).padStart(3)} to ${String(hi).padStart(3)} C ${st(s.map((r) => r.normals))} | ${st(s.map((r) => r.era5))}`);
+    }
+    for (const T of [-10, -5, 0, 5, 99]) {
+      const s = ok.filter((r) => r.rise === isRise);
+      console.log(`   rule: era5 below ${T === 99 ? 'any' : T + ' C'}: ${st(s.map((r) => (r.tempC < T ? r.era5 : r.normals)))}`);
+    }
+  }
+  writeFileSync(new URL('cold-dawn-edmonton.json', C), JSON.stringify(ok));
 }
 
 // ---- Chile ----------------------------------------------------------------------------------------------------------
