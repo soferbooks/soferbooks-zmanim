@@ -253,7 +253,7 @@ the south-west, not where the Sun sets. So the real horizon and the sea horizon 
   with the unaided eye lose the last speck of the Sun before it is gone. Observers with binoculars (Mount Wilson,
   Edmonton) see it longer.
 - **Which way it errs:** over the sea from Viña del Mar's hills, the engine's sunset is about half a minute *later*
-  than these observers saw it. From Mount Wilson (below) it is the other way. Its 15 s cushion takes back half of that. In Israel (Rabbi Keller's sunrises, mostly over mountains
+  than these observers saw it. From Mount Wilson (below), with binoculars, it is the other way. Its 15 s cushion takes back half of that. In Israel (Rabbi Keller's sunrises, mostly over mountains
   that stand above the horizon) this did not show.
 - **High sites are where refraction is least predictable:** Cerro Tololo scatters by 80 s. Inversions over the cold
   coastal sea lie below the observatory, and the light from the sea horizon crosses them.
@@ -280,56 +280,61 @@ event.
 - The bare-earth terrain (GEDTM30) could not be reached during the test. The run used Copernicus GLO-30, which counts
   trees and roofs as ground: closer to what Sampson saw, but not the engine's halachic horizon.
 
-**Mount Wilson: 250 sunsets over the Pacific, from 1,739 m, with binoculars** (Rarogiewicz 1987–91; Hilton, USNO/AA
-Technical Note 2014-05, DTIC AD1094328). The note does not list the times. It gives only their statistics against a
-standard computation: Hohenkerk and Sinclair's ray trace through the US Standard Atmosphere (6.5 K/km), with the upper
-limb on the sea horizon. For all 250 sunsets, observed minus computed is +68 s on average. For the 178 where no mirage
-was noted it is +41 s (median 35, scatter 58). The follow-up, Technical Note 2016-04 (Hilton 2016, DTIC AD1097511),
-redid the computation with the final refraction code and found the same (+42 ± 59 s on ordinary nights, +70 ± 80 s
-for all). Neither note lists the times.
+**Mount Wilson: 250 sunsets over the Pacific, from 1,739 m, with binoculars** (`mount-wilson-obs.mjs`). Lucian
+Rarogiewicz timed them from the observatory, March 1987 to November 1991. For most he also timed the Sun's lower limb
+touching the horizon (109) and its centre (217). He wrote down the NWS station's temperature, dew point and pressure
+from 15:50 PST, and whether a mirage (the Novaya Zemlya effect) was noted. Hilton analysed them (USNO/AA Technical
+Notes 2014-05 and 2016-04, DTIC AD1094328 and AD1097511), but neither note lists the times. The US Naval Observatory
+Library sent the log itself in November 2026, approved for public release. It is here as
+`research/sunsets/rarogiewicz-mount-wilson.dat`, with each sunset scored against the engine.
 
-So the test is indirect. Over the same season, weighted as his sunsets were, we found how much the engine's visible
-sunset differs from that standard computation. The standard was redone with the engine's own ray tracer, set to the
-month's normals at the site, and those figures were carried across. Hilton himself asks whether the dip was right, so
-both readings are shown:
+| Last light, observed − computed: n / mean / median / scatter (s) | Engine, the day's air | Over the real skyline | Engine, monthly normals | Standard (Hilton's method) |
+|---|---|---|---|---|
+| No mirage noted | 178 / +44 / +37 / 57 | +47 / +40 / 57 | +39 / +34 / 56 | +35 / +29 / 59 |
+| Mirage possible | 55 / +114 / +102 / 75 | +117 | +107 | +109 |
+| Mirage noted | 17 / +203 / +193 / 75 | +207 | +196 | +199 |
+| All | 250 / +70 / +55 / 78 | +73 / +59 / 78 | +64 / +50 / 77 | +62 / +50 / 81 |
 
-| Observed − engine (s), season mean | Sea horizon lifted by ordinary refraction (dip 1.249°) | Geometric dip (1.338°) |
+| Contact on the sea horizon, observed − computed: n / mean / median / scatter (s) | Engine | Standard |
 |---|---|---|
-| Standard ray trace − engine | +13 (4 to 17 over the season) | +51 (39 to 57) |
-| All 250 sunsets | +81 | +119 |
-| No mirage noted (178): mean / median | +54 / +48 | +92 / +86 |
+| Lower limb, no mirage noted | 80 / +9 / +18 / 47 | −2 / +5 / 45 |
+| Centre, no mirage noted | 150 / −1 / +4 / 33 | −10 / −8 / 32 |
+| Centre, all | 217 / −1 / +2 / 36 | −10 / −9 / 35 |
 
-- Here the Sun sets *later* than the engine's visible sunset, by about 50 s or more. At Viña del Mar it set 38 s
-  earlier. The two differ in the observers, as Wilson found: binoculars at Mount Wilson, mostly the unaided eye in
-  Chile. They also differ in the height: 1,739 m, above the inversion over the cold Pacific, against 200 m.
-- The ray trace below the horizon moves the computed sunset toward the observed one in both places: 13 s later here,
-  8 s earlier at Viña del Mar, 22 s later at Cerro Tololo. Only Hawaii (8 sunsets) went the other way.
-- The scatter cannot be scored without the times. Wilson (2018, Table 4.3) had them and scored the same sunsets with
-  Bennett's formula and a dip: +26 ± 62 s on ordinary nights, +52 ± 80 s for all 250. Her standard ray trace gave
-  +55 s on ordinary nights, against Hilton's +41. The two analyses of the same times differ by 15–30 s, mostly in the
-  dip, so only the times themselves can settle the offset. Neither her dissertation nor Hilton's note lists them.
-- **The real horizon is not all sea.** Built from Copernicus GLO-30 out to 250 km, Mount Wilson's skyline has the
-  Santa Monica Mountains (55–90 km) and Santa Cruz Island (about 165 km) rising above the sea horizon. They are up to
-  0.34° above it, in the directions where the Sun sets from about 25 September to 5 November and 3 February to
-  24 March. On 76 of the season's 188 days the engine's visible sunset over the real horizon is earlier than over the
-  sea, by up to 118 s (13 s on the season's average, weighted as his sunsets were). But Hilton's 2016 note says no
-  sunset was observed between azimuth 255° and 264°, and that is where every day blocked by more than about a minute
-  falls. Leaving those days out, the real horizon moves the engine's sunset only 3 s earlier on average (35 of 147 days
-  touched, mostly by the Santa Monica Mountains at 55–90 km). So over the real horizon, observed − engine is about
-  +57 s on ordinary nights (refracted dip). Hilton's note says nothing stood in the foreground, but it checked only the
-  islands. A second elevation source (SRTM 30 m, sampled every 750 m) gives the same mountains within 0.05°: the
-  highest, about −0.95° against the sea horizon's −1.25°, is Boney Mountain / Sandstone Peak (840 m in SRTM, 82 km
-  away, azimuth 262°). The gap in his azimuths, 255°–264°, is where the mountains stand highest, so the observer
-  most likely did not log sunsets that set on land. Without the dates the remaining few seconds cannot be settled sunset by sunset.
-- **Where the late sunset comes from.** The same observer also timed the Sun's lower limb (109 times) and centre
-  (217 times) touching the horizon. Against the same standard computation these come out at +3 ± 45 s and −4 ± 35 s:
-  the standard is right for the body of the Sun. Only the last of the upper limb is late, by 40–70 s, with twice the
-  scatter. Hilton's explanation: from 1,739 m the horizon is about 150 km away, and the air within a few hundred metres
-  of the sea there (about 5′ high as seen from the mountain) is colder than the standard atmosphere, with an
-  inversion in the lowest 10–20 m. The lower limb and centre touch the horizon above that layer; the last sliver is
-  seen through it. Rarogiewicz's 15 remarks (sunset "into a smog layer", flickering specks after sunset) fit the same
-  layer. For the engine: its offset from the standard is +13 s, so on the lower limb and centre it would be about
-  10–15 s off. The 50 s or more is the sea's surface layer acting on the last sliver of the limb.
+"Standard" is Hilton's computation redone with the engine's ray tracer: 6.5 K/km from the air measured at the
+observer, the upper limb on the sea horizon lifted by ordinary terrestrial refraction. It gives +35 s on ordinary
+nights against Hilton's +41, and the same scatter (59 against 58), so the log is read the same way. Six seconds come
+from the two ray tracers.
+
+- **The engine has the body of the Sun right.** The centre touches the sea horizon within 1 s of the engine's
+  computed time on average, and the lower limb within 9 s. The standard calculation, from the same air, is 10 s
+  late on the centre.
+- **The last sliver is late.** The upper limb went out 44 s after the engine's visible sunset on ordinary nights
+  (median 37). With a mirage noted it was over three minutes. Hilton's explanation fits: from 1,739 m the horizon is
+  about 150 km away, and the last sliver is seen through the cold layer on the sea there, which no reading taken on
+  the mountain shows. Rarogiewicz's remarks fit the same layer: the Sun setting "into a smog layer", flickering
+  specks after sunset. At Viña del Mar the unaided eye lost the Sun 38 s *before* the engine's sunset; here, with
+  binoculars, it was seen 44 s after. Binoculars and the height both count.
+- **The day's air does not help.** With the air measured that afternoon, the scatter is the same as with the monthly
+  normals (57 against 56 s), and the mean is 5 s worse. The measured temperature explains little (r = 0.25, about
+  1 s per °F). The air that matters is at the far horizon, not on the mountain. Monthly means on ordinary nights:
+  September +39, October +35, November +43, December +46, January +57, February +17, March +44.
+- **The real skyline is right.** 52 of the sunsets fall where the Santa Monica Mountains (55–90 km) or Santa Cruz
+  Island (about 165 km) rise above the sea horizon. There the engine's sunset over the real skyline is on average
+  14 s earlier than over the sea, and on those nights the observed sunset came earlier too:
+  - over the open sea (ordinary nights), observed − engine was +48 ± 5 s (141 sunsets);
+  - behind land, against the same open-sea time, it was +31 ± 10 s (37), where the skyline predicts 12 s earlier;
+  - where the skyline predicts more than 10 s, it was +18 ± 13 s (18), against 20 s predicted.
+
+  The difference is small for the number of sunsets (about 1.6 standard errors), but it goes the way the terrain says.
+  Hilton's note says nothing stood in the foreground; he checked only the islands. A second elevation source (SRTM
+  30 m, sampled every 750 m) gives the same mountains within 0.05°. The highest, about −0.95° against the sea
+  horizon's −1.25°, is Boney Mountain / Sandstone Peak (840 m in SRTM, 82 km away, azimuth 262°). Only two sunsets
+  were logged between azimuth 255° and 264°, both at 255.1°. That is where the mountains stand highest, so the
+  observer most likely skipped sunsets that set on land.
+- **Earlier estimates.** Before the log arrived, Hilton's statistics carried across gave +54 s on ordinary nights,
+  against the +44 now measured; the difference is the standard's ray tracer. Wilson (2018) scored the same times with
+  Bennett and a dip: +26 ± 62 s.
 
 **ERA5's typical layering on these timings** (`era5-layering.mjs`). This repeats the worldwide test done on Keller's
 sunrises. The air is ERA5's 2011–2020 monthly mean at that hour, ray traced along each line of sight, over the horizon
