@@ -7,7 +7,7 @@
 // moonrise never before it; and the highest lit point (Meeus's bright limb less the parallactic angle) against a model
 // of the Moon as a sphere lit by the Sun in the observer's sky, north and south of the Equator (R' Glauberman's note,
 // 2026: his formula needs the absolute value in the Southern Hemisphere).
-// Usage: node test/own/moon.test.js
+// Usage: node test/moon.test.js
 import * as AE from 'astronomy-engine';
 import { base, parallactic } from 'astronomia';
 import { newMoon, moonRiseSet, traditionalMolad, kiddushLevana, litTop } from '../src/moon.js';
@@ -82,6 +82,37 @@ ok(sets > 330 && rises > 330, `a year of moonsets (${sets}) and moonrises (${ris
       ok(Math.abs(h - best) < 0.02, `${name} 2026-11-${d}: highest lit point ${h.toFixed(3)} radius, sphere model ${best.toFixed(3)}`);
     }
   }
+}
+
+// newMoon(ms) is the nearest new moon, not only at the new moon itself (review ZM-01, 2026-11-23): 13.6 days after the
+// 7 Jan 2027 new moon it is still that one; and every 6 hours over 2026-2028 the answer is nearer than the new moons
+// before and after it (a lunation is 29.3-29.8 days, so the nearest can be up to about 14.9 days away).
+{
+  const t = Date.parse('2027-01-21T12:00Z'), r = newMoon(t);
+  ok(Math.abs(r - Date.parse('2027-01-07T20:24:23Z')) <= 10000, `new moon nearest 21 Jan 2027: ${new Date(r).toISOString()}`);
+  let notNearest = 0, maxDays = 0;
+  for (let ms = Date.UTC(2026, 0, 1); ms < Date.UTC(2029, 0, 1); ms += 6 * 3600000) {
+    const r0 = newMoon(ms), prev = newMoon(r0 - 29.5 * 86400000), next = newMoon(r0 + 29.5 * 86400000);
+    if (Math.abs(prev - ms) < Math.abs(r0 - ms) || Math.abs(next - ms) < Math.abs(r0 - ms) || prev >= r0 || next <= r0) notNearest++;
+    maxDays = Math.max(maxDays, Math.abs(r0 - ms) / 86400000);
+  }
+  ok(notNearest === 0, `newMoon is the nearest every 6 h 2026-2028 (${notNearest} not; farthest ${maxDays.toFixed(2)} days)`);
+}
+// Moonrise / moonset fall on the asked clock date when place.utcOffset is given (review ZM-02): Great Neck 26 Mar 2027
+// (EDT, −4) and 13 Feb 2027 (EST, −5); Apia (UTC+13) every day of January-February 2027.
+{
+  const inDay = (ev, date, off) => ev === null || (ev >= Date.UTC(date.y, date.m - 1, date.d) - off * 3600000 && ev < Date.UTC(date.y, date.m - 1, date.d + 1) - off * 3600000);
+  for (const [date, off] of [[{ y: 2027, m: 3, d: 26 }, -4], [{ y: 2027, m: 2, d: 13 }, -5]]) {
+    const place = { ...GN, utcOffset: off };
+    for (const dir of [1, -1]) { const ev = moonRiseSet(date, place, dir); ok(inDay(ev, date, off), `Great Neck ${date.m}/${date.d} ${dir > 0 ? 'moonrise' : 'moonset'} on the clock date (${ev && new Date(ev).toISOString()})`); }
+  }
+  const apia = { lat: -13.8333, lon: -171.7667, elevation: 0, utcOffset: 13 };
+  let off = 0;
+  for (let i = 0; i < 59; i++) {
+    const g = new Date(Date.UTC(2027, 0, 1 + i)), date = { y: g.getUTCFullYear(), m: g.getUTCMonth() + 1, d: g.getUTCDate() };
+    for (const dir of [1, -1]) if (!inDay(moonRiseSet(date, apia, dir), date, 13)) off++;
+  }
+  ok(off === 0, `Apia Jan-Feb 2027: every moonrise and moonset on the clock date (${off} not)`);
 }
 
 console.log(bad ? `${bad} of ${n} moon checks failed` : `moon: all ${n} checks pass (new moons within 10 s of JPL, Moon within 0.005° of JPL)`);

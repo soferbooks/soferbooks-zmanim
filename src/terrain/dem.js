@@ -63,7 +63,12 @@ export class Dem {
         if (this.source !== 'copernicus' && inConus(la, lo)) tries.push(['usgs', usgsUrl(la, lo)]);
         if (this.source !== 'usgs' && this.source !== 'auto-bare') tries.push(['copernicus', copernicusUrl(la, lo)]);
       }
-      this.cells.set(key, (async () => {
+      // A file the server does not have (geotiff's "Error fetching data.": an HTTP error) is the sea, as the Copernicus
+      // and USGS buckets have no file over water. A failed download (no connection, a timeout) is not: it rejects, with
+      // the last error as the cause, rather than turning missing mountains into sea. The global GEDTM file always exists,
+      // so any failure there rejects. A rejected cell is forgotten, so the next load tries again.
+      const cell = (async () => {
+        let lastErr = null, failed = false;
         for (const [name, url] of tries) {
           try {
             const tif = await this.open(url);
@@ -80,10 +85,16 @@ export class Dem {
               this.meta.set(`${key}|${level}`, { x0, y0: y1, dx: dx0 * sx, dy: dy0 * sy, w: im.getWidth(), h: im.getHeight(), tw: im.getTileWidth(), th: im.getTileHeight(), nodata });
             });
             return { name, url, images };
-          } catch { /* next source */ }
+          } catch (e) {
+            lastErr = e;
+            if (key === 'G' || e?.message !== 'Error fetching data.') failed = true;
+          }
         }
+        if (failed) throw new Error(`Elevation data could not be downloaded (cell ${key})`, { cause: lastErr });
         return null; // no file: open sea
-      })());
+      })();
+      cell.catch(() => this.cells.delete(key));
+      this.cells.set(key, cell);
     }
     return this.cells.get(key);
   }

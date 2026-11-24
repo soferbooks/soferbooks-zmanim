@@ -74,13 +74,14 @@ npm test
 | `compare-horizons.js` | NASA JPL Horizons, the Sun every 5 days 2026–29 | within 0.12″ |
 | `compare-usno.js` | US Naval Observatory sunrise / sunset tables | within USNO's rounding |
 | `compare-roy.js` | Zemaneh Yosef's formulas (via KosherJava), 7 places, a whole year | within 4.2 s |
-| `compare-observations.js` | 2,209 observed sunrises (Rabbi Chaim Keller's collection) | mean 3.7 s, rms 16.3 s |
-| `moon.test.js` | JPL Horizons new moons and lunar positions | within 6 s / 0.002° |
+| `compare-observations.js` | 2,209 observed sunrises (Rabbi Chaim Keller's collection) | mean 1.2 s, rms 14.0 s |
+| `moon.test.js` | JPL Horizons new moons and lunar positions; the nearest new moon from any moment; moonrise / moonset on the clock date | within 6 s / 0.002° |
+| `check.test.js` | bad input throws; a failed terrain download is an error, not the sea | 21 checks |
 | `raytrace.test.js` | Starlink PAL's refraction integration | within 1.9″ |
-| `zmanim.test.js` | polar days, order of the zmanim, all forms, every opinion described | 752 checks |
+| `zmanim.test.js` | polar days, order of the zmanim, all forms, every opinion described | 776 checks |
 
 `compare-observations.js` downloads Rabbi Keller's observations from his repository on its first run; they are not
-redistributed here.
+redistributed here. Without internet on that first run it reports "skipped".
 
 ## Sources and thanks
 

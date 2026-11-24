@@ -1,7 +1,7 @@
 // Chacham Ovadia's set from the own engine against Zemaneh Yosef's formulas on kosher-zmanim (roy-reference.js), every
 // day of a Gregorian year at several places. The two use different solar theories (Astronomy Engine's VSOP87 vs the
 // NOAA approximation), so a few seconds apart is agreement.
-// Usage: node test/own/compare-roy.js [year]
+// Usage: node test/compare-roy.js [year]
 import { dayZmanim } from '../src/zmanim.js';
 import { royReference } from './roy-reference.js';
 

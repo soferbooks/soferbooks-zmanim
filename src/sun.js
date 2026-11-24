@@ -3,7 +3,7 @@
 // Algorithms): the full VSOP87B series for the Earth (2,582 terms, IMCCE), FK5 correction, IAU 1980 nutation,
 // aberration, apparent sidereal time and ΔT. Against NASA JPL Horizons (DE441) it is within 0.12″ of the Sun every
 // 5 days 2026-2029, closer than Astronomy Engine's Sun (2.1″); see
-// test/own/compare-horizons.js. This file is only the glue: hour angles, topocentric parallax, and the search for
+// test/compare-horizons.js. This file is only the glue: hour angles, topocentric parallax, and the search for
 // the moment the Sun's centre reaches a given altitude.
 //
 // Conventions used everywhere in src/:

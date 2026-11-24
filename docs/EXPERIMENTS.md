@@ -8,7 +8,9 @@ Golan at Neve Yaakov 2009–13, Rav Yosef Zuriel in Bnei Brak 1961–92), each c
 The tests below were run on the first 656 of them (Rav Druk 1993–96 only). On 2026-11-10 an error in reading Rav Druk's
 1993–96 file was found and fixed (63 times had been filed under the wrong year and 153 left out) and his 1985–92 sunrises
 were added. On all 2,209 the kept method gives mean 3.7 s, rms 16.3 s (Rav Druk 4.4 / 17.0, R' Golan 0.4 / 10.9, Rav
-Zuriel −4.1 / 11.2); standard fixed refraction gives 23.3 / 29.7. The comparisons between methods below were not redone.
+Zuriel −4.1 / 11.2); standard fixed refraction gives 23.3 / 29.7. On 2026-11-20 the skyline was extended from 60 to
+100 km (below): the kept method now gives mean 1.2 s, rms 14.0 s (Rav Druk 1.6 / 14.4, R' Golan 0.3 / 10.8, Rav Zuriel
+−4.1 / 11.2). The comparisons between methods below were not redone.
 
 "Mean" is the average of observed − computed (positive: the Sun was seen later than computed); "rms" is the typical
 size of the error, including the day-to-day scatter.
@@ -22,7 +24,47 @@ size of the error, including the day-to-day scatter.
 | The **day's forecast** averaged over the day, when a forecast covers the date (apps) | 2.2 s | 15.1 s | No better on the Israeli observations, where daily swings are small, but it follows cold snaps and heat waves, which move sunrise by up to about 10 s in a variable climate. |
 | Dawn and nightfall in degrees measured **below the true horizon** | — | — | Twilight light comes from rays that skim the Earth far away and high above the local air, so the morning's local refraction should not move dawn. Measuring below the day's own rise point would. |
 | Over the sea, the horizon's dip from the **standard bending of light, with no temperature term** (1.80′ × √height in metres) | — | — | What today's nautical tables use (the Nautical Almanac and Bowditch: 1.76′ × √h, less than a second of sunrise apart at ordinary heights). A correction for the water's temperature was tested and not adopted (below). |
+| The skyline searched to **100 km**, full resolution to 60 km and the maps' 4″ overview beyond (2026-11-20, below) | 1.2 s | 14.0 s | Was 60 km (3.7 s / 16.3 s). Rav Druk's Moab skyline has peaks 60–76 km away. The 4″ blocks are already in the phone's download for Rabbi Diskin's far horizon, so the download does not grow. |
 | The new moon from Meeus' full lunar theory (astronomia) | — | — | Within 6 s of JPL Horizons; Astronomy Engine's new-moon search was 31–42 s late. Astronomy Engine is still used for moonrise and moonset, where its Moon agrees with JPL to 0.002°. |
+
+## Kept since 2026-11-20: how far the skyline reaches
+
+The engine searched the skyline out to 60 km (`MAX_KM`). Zemaneh Yosef (ROYZmanim) pointed out that, with the same
+standard refraction, their computed sunrises for Rav Druk come about 20 s later than ours, which points to the skyline
+rather than the air. Rav Druk looks over the Moab plateau, 40 to over 70 km away, and at several sunrise directions
+our highest point sat right at the 60 km limit. The test reruns all 2,209 sunrises with the skyline searched to 150 km
+(`node test/compare-observations.js --maxkm=150`):
+
+| Observed − computed, mean / rms (s), monthly normals | Skyline to 60 km | To 150 km | Zemaneh Yosef (normals) |
+|---|---|---|---|
+| Rav Druk 1993–96 (521) | +5.7 / 16.5 | +2.5 / 13.1 | −4.2 / 13.5 |
+| Rav Druk 1985–92 (1,400) | +3.9 / 17.1 | +0.7 / 14.6 | −6.0 / 15.7 |
+| R' Golan (200) | +0.4 / 10.9 | +0.3 / 10.8 | −1.2 / 10.5 |
+| Rav Zuriel (88) | −4.1 / 11.2 | −4.1 / 11.2 | 12.6 rms |
+| All 2,209 | +3.7 / 16.3 | +0.9 / 13.8 | |
+
+- Better for Rav Druk (17.0 → 14.2 s rms over his 1,921 sunrises), a hair better for R' Golan, unchanged for Rav Zuriel:
+  better or equal everywhere.
+- The skyline rose in 140 directions for Rav Druk, by up to 0.11° toward the northeast (the summer sunrises), and in
+  16 for R' Golan, by up to 0.02°. Every newly seen point lies 60–76 km away, so a 100 km limit would give the same.
+- With standard refraction our mean is still +20 s against their +5 s, so the geometry still differs in part (the
+  terrain's own refraction, the elevation data, or the eye height). With the normals the mean is now within 1 s.
+- Their ERA5 along the line of sight (columns to 400 km, the air varying along the path) gives 10.5 / 12.3 s on Rav
+  Druk. Our ERA5 test averaged the columns into one profile, so it was not a test of their method.
+
+**Kept, with a light far ring.** The phone already downloads the maps' 4″ overview from 38 to 100 km (for Rabbi
+Diskin's far horizon), so the skyline now reads full resolution to 60 km and that overview from 60 to 100 km (`LEVELS`,
+`MAX_KM` in `src/terrain/skyline.js`). Against full resolution to 150 km, every day of a year (`skyline-reach.mjs`):
+
+| Visible sunrise against 1″ to 150 km | Old: 1″ to 60 km | Now: 1″ to 60 km, 4″ to 100 km |
+|---|---|---|
+| Rav Druk | mean 2.6 s, max 37 s | mean 0.3 s, max 3 s |
+| R' Golan | mean 0.1 s, max 8 s | mean 0.0 s, max 1 s |
+| Rav Zuriel | 0 | 0 |
+| All 2,209 observed sunrises, rms | 16.3 s | 14.0 s (full resolution: 13.8 s) |
+
+The overview averages the ground, so where it differs the sunrise comes a little earlier (up to 3 s). With "Far
+mountains in full detail" on, the app reads full resolution to 100 km as well.
 
 ## Tested and not adopted
 
@@ -128,6 +170,29 @@ refraction differ in shape, so the factor has to be applied to the traced table 
 consistent but tiny: the times there move 0.6 s on average. So it is not strictly ours-more-accurate everywhere.
 Worldwide, it would need these monthly means for every grid point (the source data is large, the finished table a few
 MB) and would be checked only where observations exist. It has not been built.
+
+### Keller's winter rule (2026-11-20)
+
+Chai Tables removes its 15 s cushion from sunrise in winter months, which puts the sunrise 15 s earlier. Keller and
+Hall (Computers & Geosciences, 2022) treat the winter dawn inversion the same way. The rule as Keller's program states
+it (netzski6.c, version 18): a month is winter when its mean daily minimum temperature is below half the warmest
+month's. With ERA5 2011–2020 minimums that is December–March in Jerusalem, December–February in Tel Aviv, and October–May
+in Edmonton (`research/sunsets/winter-rule.mjs`, on the engine's default 100 km skyline):
+
+| Sunrises, mean / rms (s) | Engine | With the winter rule |
+|---|---|---|
+| Rav Druk (1,921) | +1.6 / 14.4 | +5.5 / 14.5 |
+| R' Golan (200) | +0.3 / 10.8 | +2.9 / 10.1 |
+| Rav Zuriel (88) | −4.1 / 11.2 | +0.5 / 13.3 |
+| All 2,209 | +1.2 / 14.0 | +5.1 / 14.1 |
+| Edmonton (244) | −71 / 112 | −59 / 105 |
+
+**Not adopted.** It helps R' Golan and Edmonton and hurts Bnei Brak, and on Rav Druk it changes nothing. His sunrises
+do run early in winter (November–January 11–14 s before the engine's) and late in summer (June–August 8–9 s after),
+but March, inside Keller's winter, is on time, so a flat 15 s over four months overshoots. Bnei Brak shows no seasonal
+pattern. Zemaneh Yosef report the rule as a gain on Rav Druk (13.5 → 11.4 s) and say it never triggers at Bnei Brak, so
+their version has a condition Keller's comment does not state. As with the night-cooling term above, the winter
+pattern belongs to the view over the Judean desert and the Jordan rift, not to winter as such.
 
 ### Local weather stations
 

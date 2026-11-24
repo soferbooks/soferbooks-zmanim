@@ -5,6 +5,7 @@
 // seasonal minutes (twilight degrees turned into seasonal minutes, as Zemaneh Yosef / royzmanim.com compute them), and
 // fixed minutes. Every zman can still be chosen on its own from the
 // catalogue (dayZmanim().opinions).
+import { assertDate, assertPlace } from './check.js';
 import { transit, lowerTransit, crossing, sunDistance, sunPosition, marchEquinox, SUN_RADIUS_1AU_DEG } from './sun.js';
 import { horizonRefraction, horizonDip, STANDARD_REFRACTION_DEG, stationPressure } from './refraction.js';
 
@@ -26,7 +27,7 @@ const civil = (ms) => { const d = new Date(ms); return { y: d.getUTCFullYear(), 
 
 // Level sunrise / sunset with a given refraction and the true solar radius.
 function levelRiseSet(date, place, direction, refractionDeg, noon) {
-  const alt = (ms) => -(sunDistance(ms, place).radiusDeg + refractionDeg);
+  const alt = (ms) => -(sunDistance(ms).radiusDeg + refractionDeg);
   return crossing(date, place, alt, direction, noon);
 }
 
@@ -44,7 +45,7 @@ export function equinoxAngle(minutes, direction, year = 2026, refractionDeg = ST
   const rise = levelRiseSet(date, JERUSALEM, direction, refractionDeg);
   const at = rise - direction * minutes * MIN;
   const alt = sunPosition(at, JERUSALEM).altitude;
-  const riseAlt = -(sunDistance(rise, JERUSALEM).radiusDeg + refractionDeg);
+  const riseAlt = -(sunDistance(rise).radiusDeg + refractionDeg);
   const res = { angle: riseAlt - alt, geometric: -alt };
   angleCache.set(key, res);
   return res;
@@ -69,7 +70,7 @@ export const MINUTES = {
 // Opinions not listed by default (a design decision): still computed, shown when chosen or under "more opinions".
 export const HIDDEN_BY_DEFAULT = [
   /^alot\.(deg|fixed|seasonal)(90|96|120)$/,
-  /^candles\.(deg|fixed|seasonal)(20|22|24|30|40)$/,
+  /^candles\.fixed(20|22|24|30|40)$/, // (candle lighting is listed only in fixed minutes)
   /^\w+\.ma_(deg|fixed|seasonal)(72|90|96|120)$/, // Magen Avraham's day, alot N to tzeit N
   /^tzeit\.(deg|fixed|seasonal)(18|18_5|20|25|40|90|96|120)$/,
   /^tzeit\.(deg|seasonal)(42|50)$/, // 42 and 50 listed only as fixed minutes
@@ -150,7 +151,8 @@ export function royEquinoxFraction(deg, direction, place, year) {
 /**
  * One day's zmanim.
  * date  = { y, m, d } civil date at the place
- * place = { lat, lon (east +), elevation (m), israel (bool) }
+ * place = { lat (−90…90), lon (east +, −180…180), elevation (m), utcOffset (hours; needed where the clock is across the
+ *           date line from the longitude: Samoa, Kiritimati, …) }. Bad input throws a TypeError (check.js).
  * cfg   = {
  *   refraction: { sunrise, sunset } each a ray-traced table (airprofiles.js tableFor) or { tempC, pressure },
  *               or a number (degrees); default: the standard refraction,
@@ -158,8 +160,15 @@ export function royEquinoxFraction(deg, direction, place, year) {
  *   candleMinutes (default 18),
  *   degreesFrom: undefined (the true horizon) | 'risePoint' (below the day's own rise / set point),
  *   angles: undefined (each angle from its minutes) | { '-1:36.5': angle, … } overrides,
+ *   horizon: 'sea' (default, DEFAULT_HORIZON) | 'level' | 'lower': what the zmanim built on sunrise / sunset count from,
+ *   ryhYear (default 2026): the year whose 17 March gives Rav Yaakov Hillel's degree equivalents,
  * }
- * Returns { transit, midnight, sunrise:{…}, sunset:{…}, opinions: { id: ms|null }, hours: { id: ms } }.
+ * Returns { transit (ms), sunrise:{…}, sunset:{…}, refraction: { sunrise, sunset } (degrees), angles: { id: degrees },
+ *   opinions: { id: ms|null }, info: { id: { label, detail } }, candleId (the place's candle-lighting opinion id),
+ *   hours: { id: the length of a halachic hour in ms (a duration, not a time of day) } }.
+ * Midnight is among the opinions ('midnight.half', 'midnight.astronomical').
+ * On very short days (near the polar circles) some zmanim can fall out of their usual order: only "mincha gedola after
+ * sunset" and "candle lighting before plag" are set to null; the sets are not meant for days of a few hours.
  */
 // The horizon that every zman built on sunrise or sunset counts from (Gra hours, fixed and seasonal minutes, candle
 // lighting, the halfway midday, plag ...): 'sea' (sea-level sunrise and sunset with standard refraction, 50′ in all, as
@@ -169,6 +178,7 @@ export function royEquinoxFraction(deg, direction, place, year) {
 export const DEFAULT_HORIZON = 'sea';
 
 export function dayZmanim(date, place, cfg = {}) {
+  assertDate(date, 'dayZmanim'); assertPlace(place, 'dayZmanim');
   const noon = transit(date, place);
   // Refraction at apparent elevation e for an event: a ray-traced table (airprofiles.js) when given, else the horizon
   // value from the air's temperature and pressure (or a number of degrees), the same at every e near the horizon.
@@ -179,7 +189,7 @@ export function dayZmanim(date, place, cfg = {}) {
     return horizonRefraction(r?.[ev] ?? {});
   };
   const rSunrise = refrAt('sunrise'), rSunset = refrAt('sunset');
-  const radius = (ms) => sunDistance(ms, place).radiusDeg;
+  const radius = (ms) => sunDistance(ms).radiusDeg;
   const at = (direction, extra, refr) => crossing(date, place, (ms) => -(radius(ms) + refr + extra), direction, noon);
 
   // Sunrise and sunset. level: a level horizon at the observer's own height (Rav Hillel's main time, also "sea
@@ -477,6 +487,7 @@ export const SETS = {
 
 // The set's chosen time for each zman, with any per-zman picks overriding it: { alot: ms, ... }.
 export function pick(day, set = 'degrees', overrides = {}) {
+  if (!SETS[set]) throw new TypeError(`pick: unknown set "${set}" (one of ${Object.keys(SETS).join(', ')})`);
   const s = { ...SETS[set], ...overrides };
   const out = {};
   for (const [k, id] of Object.entries(s)) if (k !== 'name') out[k] = day.opinions[k === 'candles' && !overrides.candles ? day.candleId ?? id : id] ?? null;

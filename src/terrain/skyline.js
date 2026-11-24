@@ -11,16 +11,23 @@ import { K_STANDARD } from '../refraction.js';
 import { visibleRiseSet } from './visible.js';
 
 // A pause for the page between pieces of the work (the skylines take seconds on a phone).
-const breathe = () => new Promise((r) => setTimeout(r, 0));
+// Without setTimeout (JavaScriptCore, QuickJS, Hermes with no host timers) it only yields to other promises.
+const breathe = () => (typeof globalThis.setTimeout === 'function' ? new Promise((r) => globalThis.setTimeout(r, 0)) : Promise.resolve());
 export const TECHUM_M = 1200;
 export const EYE_M = 1.6;
-export const MAX_KM = 60;
+// 100 km: Rav Druk's skyline over the Moab plateau has peaks 60–76 km away; searched to 60 km, his 1,921 observed
+// sunrises scored 17.0 s rms, to 150 km 14.2 s (EXPERIMENTS.md, "How far the skyline reaches"). Past 100 km the Earth's
+// curve hides anything under about 700 m.
+export const MAX_KM = 100;
 export const AZ_STEP = 0.1;
-// Resolution by distance: [from m, to m, level] (0 = full 1″, 1 = 2″, 2 = 4″, 3 = 8″ overviews). Full resolution all the
-// way: the overviews average the ground, which lowers peaks and gives an earlier (lenient) sunrise. Measured 2026-11-05
+// Resolution by distance: [from m, to m, level] (0 = full 1″, 1 = 2″, 2 = 4″, 3 = 8″ overviews). Full resolution to
+// 60 km: the overviews average the ground, which lowers peaks and gives an earlier (lenient) sunrise. Measured 2026-11-05
 // against full resolution: 1″ to 15 km / 2″ to 35 km / 4″ beyond saved ~40 % of the download but moved the skyline up to
 // 0.017° (≈ 5 s); coarser schedules up to 0.08° (≈ 23 s). Full: Great Neck 29 MB, Kotel 28 MB, Beit Shemesh 25 MB.
-export const LEVELS = [[0, Infinity, 0]];
+// Beyond 60 km the 4″ overview: the far skylines (Rabbi Diskin's horizon) already load those blocks, so it adds nothing to
+// the download. Measured 2026-11-20 against 1″ to 150 km at Keller's three observation points, every day of a year:
+// 0.3 s on average, 3 s at most (Rav Druk); on the 2,209 observed sunrises 14.0 s rms against 13.8 s.
+export const LEVELS = [[0, 60000, 0], [60000, Infinity, 2]];
 export const LEVELS_LIGHT = [[0, 15000, 0], [15000, 35000, 1], [35000, Infinity, 2]];
 
 const D2R = Math.PI / 180, R2D = 180 / Math.PI;
@@ -175,7 +182,9 @@ export async function computeHorizonSet(place, opts = {}, onProgress = () => {})
   const skies = [];
   for (let i = 0; i < cands.length; i++) {
     const c = cands[i];
-    const sky = await computeSkyline(place, { ...opts, dem, techumM: opts.shaveM ?? SHAVE_M, vantage: { lat: c.lat, lon: c.lon, eye: c.ground + eye } },
+    // The far mountains at full detail when the far skylines are (the app's "Far mountains in full detail").
+    const levels = opts.levels ?? (opts.farLevels?.every(([, , l]) => l === 0) ? [[0, Infinity, 0]] : LEVELS);
+    const sky = await computeSkyline(place, { ...opts, dem, levels, techumM: opts.shaveM ?? SHAVE_M, vantage: { lat: c.lat, lon: c.lon, eye: c.ground + eye } },
       (p) => { if (p.phase === 'download') onProgress(p); });
     delete sky.place;
     // Rabbi Diskin's horizon: only the mountains more than a day's walk away (FAR_M); the same high point, the same

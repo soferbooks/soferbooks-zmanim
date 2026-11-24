@@ -5,9 +5,9 @@
 // and saved in fixtures/ (--refresh downloads it again).
 // Reports observed minus computed (without the cushion): the mean says whether we are early or late, the spread is the
 // day-to-day weather the standard refraction cannot know.
-// Usage: node test/compare-observations.js [--source=auto-bare|auto|gedtm|copernicus] [--refresh] [--techum=1200] [--refraction=normals|standard|profiles|traced-normals]
+// Usage: node test/compare-observations.js [--source=auto-bare|auto|gedtm|copernicus] [--refresh] [--techum=1200] [--refraction=normals|standard|profiles|traced-normals] [--maxkm=100] [--farlevel=2]
 import { readFileSync, writeFileSync, existsSync } from 'node:fs';
-import { computeSkyline } from '../src/terrain/skyline.js';
+import { computeSkyline, MAX_KM, LEVELS } from '../src/terrain/skyline.js';
 import { visibleRiseSet } from '../src/terrain/visible.js';
 import { fetchObservations } from './fetch-observations.mjs';
 import { stationPressure, normalForDay } from '../src/refraction.js';
@@ -17,10 +17,21 @@ const arg = (k, d) => (process.argv.find((a) => a.startsWith(`--${k}=`)) ?? `=${
 const techumM = Number(arg('techum', 1200));
 const refrMode = arg('refraction', 'normals');
 const obsUrl = new URL('./fixtures/observations.json', import.meta.url);
-if (!existsSync(obsUrl)) await fetchObservations(obsUrl);
+if (!existsSync(obsUrl)) {
+  try { await fetchObservations(obsUrl); } catch (e) {
+    console.log(`skipped: Rabbi Keller's observations could not be downloaded (${e.message}); run once with internet`);
+    process.exit(0);
+  }
+}
 const fx = JSON.parse(readFileSync(obsUrl));
 const source = arg('source', 'auto-bare');
-const cacheUrl = new URL(`./fixtures/fixture-skylines-observations-${techumM}-${source}.json`, import.meta.url);
+// --maxkm: how far the skyline is searched (default the engine's MAX_KM, 100). --farlevel: the resolution beyond 60 km
+// (default the engine's, 2 = the maps' 4″ overview; 0 = full). The old 60 km skylines are in the file without a suffix.
+const maxKm = Number(arg('maxkm', MAX_KM));
+const farLevel = Number(arg('farlevel', LEVELS.at(-1)[2]));
+const levels = [[0, 60000, 0], [60000, Infinity, farLevel]];
+const defaults = maxKm === MAX_KM && farLevel === LEVELS.at(-1)[2];
+const cacheUrl = new URL(`./fixtures/fixture-skylines-observations-${techumM}-${source}${maxKm === 60 ? '' : `-${maxKm}km${farLevel ? `-far${farLevel}` : ''}`}.json`, import.meta.url);
 let cache = existsSync(cacheUrl) && !process.argv.includes('--refresh') ? JSON.parse(readFileSync(cacheUrl)) : {};
 
 // Monthly normals for refraction: ERA5 daily means 1991-2020 from Open-Meteo (CC BY 4.0; fixtures/fixture-climate-israel.json:
@@ -46,7 +57,7 @@ let fresh = false;
 const stats = {};
 for (const [id, site] of Object.entries(fx.sites)) {
   if (!cache[id]) {
-    cache[id] = await computeSkyline(site, { vantage: { lat: site.lat, lon: site.lon, eye: site.eye }, techumM, source });
+    cache[id] = await computeSkyline(site, { vantage: { lat: site.lat, lon: site.lon, eye: site.eye }, techumM, source, maxKm, levels });
     fresh = true;
   }
   const sky = cache[id];
@@ -62,14 +73,14 @@ for (const [id, site] of Object.entries(fx.sites)) {
     if (!v) continue;
     const diff = (obs - v.raw) / 1000;
     if (Math.abs(diff) > 300) continue; // a mis-recorded entry
-    s.n++; s.sum += diff; s.sq += diff * diff; s.list.push(diff);
+    s.n++; s.sum += diff; s.sq += diff * diff; s.list.push(diff); (s.dated ??= []).push([r.date, diff]);
     if (v.near) s.near++;
   }
 }
 if (fresh) writeFileSync(cacheUrl, JSON.stringify(cache));
 // --dump=path: each observer's observed − computed (s), for research/sunsets/cushion.mjs.
 const dump = arg('dump', '');
-if (dump) writeFileSync(dump, JSON.stringify(Object.fromEntries(Object.entries(stats).map(([id, s]) => [id, s.list]))));
+if (dump) writeFileSync(dump, JSON.stringify(Object.fromEntries(Object.entries(stats).flatMap(([id, s]) => [[id, s.list], [`${id}Dated`, s.dated]]))));
 let allN = 0, allSum = 0, allSq = 0;
 for (const [id, s] of Object.entries(stats)) {
   const mean = s.sum / s.n, rms = Math.sqrt(s.sq / s.n), sd = Math.sqrt(s.sq / s.n - mean * mean);
@@ -79,5 +90,5 @@ for (const [id, s] of Object.entries(stats)) {
 }
 // Pass: every observer's mean within 5 s and spread (rms) within 20 s, with the default settings (techum shave, normals).
 const bad = Object.values(stats).filter((s) => Math.abs(s.sum / s.n) > 5 || Math.sqrt(s.sq / s.n) > 20).length;
-console.log(`all ${allN} observed sunrises (techum shave ${techumM} m, ${refrMode} refraction, ${source} elevation): mean ${(allSum / allN).toFixed(1)} s, rms ${Math.sqrt(allSq / allN).toFixed(1)} s; ${bad} observers outside 5 s mean / 20 s rms`);
-if (techumM === 1200 && refrMode === 'normals' && source === 'auto-bare') process.exit(bad ? 1 : 0);
+console.log(`all ${allN} observed sunrises (techum shave ${techumM} m, ${refrMode} refraction, ${source} elevation, skyline to ${maxKm} km${farLevel ? `, level ${farLevel} beyond 60 km` : ''}): mean ${(allSum / allN).toFixed(1)} s, rms ${Math.sqrt(allSq / allN).toFixed(1)} s; ${bad} observers outside 5 s mean / 20 s rms`);
+if (techumM === 1200 && refrMode === 'normals' && source === 'auto-bare' && defaults) process.exit(bad ? 1 : 0);
